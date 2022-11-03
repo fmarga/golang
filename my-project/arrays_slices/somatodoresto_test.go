@@ -1,7 +1,9 @@
 package arrays_slices
 
-import "testing"
-import "reflect"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestSomaTodoResto(t *testing.T) {
 
