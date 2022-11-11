@@ -21,11 +21,11 @@ func (s *ServidorJogador) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		s.registrarVitoria(w, jogador)
 	case http.MethodGet:
-		s.MostrarPontuacao(w, jogador)
+		s.mostrarPontuacao(w, jogador)
 	}
 }
 
-func (s *ServidorJogador) MostrarPontuacao(w http.ResponseWriter, jogador string) {
+func (s *ServidorJogador) mostrarPontuacao(w http.ResponseWriter, jogador string) {
 	pontuacao := s.armazenamento.ObterPontuacaoJogador(jogador)
 
 	if pontuacao == 0 {

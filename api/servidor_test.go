@@ -90,15 +90,6 @@ func TestArmazenamentoVitorias(t *testing.T) {
 	}
 	servidor := &ServidorJogador{&armazenamento}
 
-	t.Run("retorna status 'aceito' para chamadas ao método POST", func(t *testing.T) {
-		requisicao, _ := http.NewRequest(http.MethodPost, "/jogadores/Maria", nil)
-		resposta := httptest.NewRecorder()
-
-		servidor.ServeHTTP(resposta, requisicao)
-
-		verificarRespostaCodigoStatus(t, resposta.Code, http.StatusAccepted)
-	})
-
 	t.Run("registra vitórias nas chamadas ao método HTTP POST", func(t *testing.T) {
 		jogador := "Maria"
 
@@ -141,8 +132,4 @@ func TestRegistrarVitoriasEBuscarEssasVitorias(t *testing.T) {
 	verificarRespostaCodigoStatus(t, resposta.Code, http.StatusOK)
 
 	verificarCorpoRequisicao(t, resposta.Body.String(), "3")
-}
-
-func NovoArmazenamentoJogadorEmMemoria() *ArmazenamentoJogadorEmMemoria {
-	return &ArmazenamentoJogadorEmMemoria{map[string]int{}}
 }

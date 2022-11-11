@@ -9,6 +9,10 @@ type ArmazenamentoJogadorEmMemoria struct {
 	armazenamento map[string]int
 }
 
+func NovoArmazenamentoJogadorEmMemoria() *ArmazenamentoJogadorEmMemoria {
+	return &ArmazenamentoJogadorEmMemoria{map[string]int{}}
+}
+
 func (a *ArmazenamentoJogadorEmMemoria) RegistrarVitoria(nome string) {
 	a.armazenamento[nome]++
 }
