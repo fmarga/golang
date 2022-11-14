@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 )
@@ -8,13 +9,45 @@ import (
 type ArmazenamentoJogador interface {
 	ObterPontuacaoJogador(nome string) int
 	RegistrarVitoria(nome string)
+	ObterLiga() []Jogador
+}
+
+type Jogador struct {
+	Nome     string
+	Vitorias int
 }
 
 type ServidorJogador struct {
 	armazenamento ArmazenamentoJogador
+	http.Handler
 }
 
-func (s *ServidorJogador) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func NovoServidorJogador(armazenamento ArmazenamentoJogador) *ServidorJogador {
+	s := new(ServidorJogador)
+
+	s.armazenamento = armazenamento
+
+	roteador := http.NewServeMux()
+	roteador.Handle("/liga", http.HandlerFunc(s.manipulaLiga))
+	roteador.Handle("/jogadores/", http.HandlerFunc(s.manipulaJogadores))
+
+	s.Handler = roteador
+
+	return s
+}
+
+func (s *ServidorJogador) manipulaLiga(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type", "application/json")
+	json.NewEncoder(w).Encode(s.armazenamento.ObterLiga())
+}
+
+func (s *ServidorJogador) OberTabelaDaLiga() []Jogador {
+	return []Jogador{
+		{"Chris", 20},
+	}
+}
+
+func (s *ServidorJogador) manipulaJogadores(w http.ResponseWriter, r *http.Request) {
 	jogador := r.URL.Path[len("/jogadores/"):]
 
 	switch r.Method {

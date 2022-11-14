@@ -1,15 +1,19 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 )
 
 type EsbocoArmazenamentoJogador struct {
 	pontuacoes       map[string]int
 	registroVitorias []string
+	liga             []Jogador
 }
 
 func (e *EsbocoArmazenamentoJogador) ObterPontuacaoJogador(nome string) int {
@@ -21,6 +25,10 @@ func (e *EsbocoArmazenamentoJogador) RegistrarVitoria(nome string) {
 	e.registroVitorias = append(e.registroVitorias, nome)
 }
 
+func (e *EsbocoArmazenamentoJogador) ObterLiga() []Jogador {
+	return e.liga
+}
+
 // ------ TESTE OBTER JOGADORES
 func TestObterJogadores(t *testing.T) {
 	armazenamento := EsbocoArmazenamentoJogador{
@@ -29,9 +37,10 @@ func TestObterJogadores(t *testing.T) {
 			"Pedro": 10,
 		},
 		nil,
+		nil,
 	}
 
-	servidor := &ServidorJogador{&armazenamento}
+	servidor := NovoServidorJogador(&armazenamento)
 
 	t.Run("retornar resultado de Maria", func(t *testing.T) {
 		requisicao := novaRequisicaoObterPontuacao("Maria")
@@ -87,8 +96,9 @@ func TestArmazenamentoVitorias(t *testing.T) {
 	armazenamento := EsbocoArmazenamentoJogador{
 		map[string]int{},
 		nil,
+		nil,
 	}
-	servidor := &ServidorJogador{&armazenamento}
+	servidor := NovoServidorJogador(&armazenamento)
 
 	t.Run("registra vitórias nas chamadas ao método HTTP POST", func(t *testing.T) {
 		jogador := "Maria"
@@ -116,20 +126,78 @@ func novaRequisicaoRegistrarVitoriaPost(nome string) *http.Request {
 	return requisicao
 }
 
-// ------ TESTE DE INTEGRAÇÃO
+// ------ TESTE LIGA
 
-func TestRegistrarVitoriasEBuscarEssasVitorias(t *testing.T) {
-	armazenamento := NovoArmazenamentoJogadorEmMemoria()
-	servidor := ServidorJogador{armazenamento}
-	jogador := "Maria"
+func TestLiga(t *testing.T) {
+	armazenamento := EsbocoArmazenamentoJogador{}
+	servidor := NovoServidorJogador(&armazenamento)
 
-	servidor.ServeHTTP(httptest.NewRecorder(), novaRequisicaoRegistrarVitoriaPost(jogador))
-	servidor.ServeHTTP(httptest.NewRecorder(), novaRequisicaoRegistrarVitoriaPost(jogador))
-	servidor.ServeHTTP(httptest.NewRecorder(), novaRequisicaoRegistrarVitoriaPost(jogador))
+	t.Run("retorna 200 em /liga", func(t *testing.T) {
+		requisicao, _ := http.NewRequest(http.MethodGet, "/liga", nil)
+		resposta := httptest.NewRecorder()
 
-	resposta := httptest.NewRecorder()
-	servidor.ServeHTTP(resposta, novaRequisicaoObterPontuacao(jogador))
-	verificarRespostaCodigoStatus(t, resposta.Code, http.StatusOK)
+		servidor.ServeHTTP(resposta, requisicao)
 
-	verificarCorpoRequisicao(t, resposta.Body.String(), "3")
+		var obtido []Jogador
+
+		err := json.NewDecoder(resposta.Body).Decode(&obtido)
+
+		if err != nil {
+			t.Fatalf("não foi possível fazer parse da resposta do servidor '%s' no slice de Jogador, '%v'", resposta.Body, err)
+		}
+
+		verificarRespostaCodigoStatus(t, resposta.Code, http.StatusOK)
+	})
+
+	t.Run("retorna a tabela da liga como JSON", func(t *testing.T) {
+		ligaEsperada := []Jogador{
+			{"Cleo", 32},
+			{"Chris", 20},
+			{"Tiest", 14},
+		}
+
+		armazenamento := EsbocoArmazenamentoJogador{nil, nil, ligaEsperada}
+		servidor := NovoServidorJogador(&armazenamento)
+
+		requisicao := novaRequisicaoDeLiga()
+		resposta := httptest.NewRecorder()
+
+		servidor.ServeHTTP(resposta, requisicao)
+
+		obtido := obterLigaDaResposta(t, resposta.Body)
+
+		verificarRespostaCodigoStatus(t, resposta.Code, http.StatusOK)
+		verificaLiga(t, obtido, ligaEsperada)
+		verificaTipoDoConteudo(t, resposta, tipoDoConteudoJSON)
+	})
+}
+
+func novaRequisicaoDeLiga() *http.Request {
+	requisicao, _ := http.NewRequest(http.MethodGet, "/liga", nil)
+	return requisicao
+}
+
+func obterLigaDaResposta(t *testing.T, body io.Reader) (liga []Jogador) {
+	t.Helper()
+	err := json.NewDecoder(body).Decode(&liga)
+	if err != nil {
+		t.Fatalf("não foi possível fazer parse da resposta do servidor '%s' no slice de Jogador, '%v'", body, err)
+	}
+	return
+}
+
+func verificaLiga(t *testing.T, obtido, esperado []Jogador) {
+	t.Helper()
+	if !reflect.DeepEqual(obtido, esperado) {
+		t.Errorf("obtido %v, esperado %v", obtido, esperado)
+	}
+}
+
+const tipoDoConteudoJSON = "application/json"
+
+func verificaTipoDoConteudo(t *testing.T, resposta *httptest.ResponseRecorder, esperado string) {
+	t.Helper()
+	if resposta.Result().Header.Get("content-type") != esperado {
+		t.Errorf("resposta não tinha o tipo de conteúdo de application/json, obtido '%v'", resposta.Result().Header)
+	}
 }
