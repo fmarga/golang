@@ -11,7 +11,10 @@ import (
 func TestRegistrarVitoriasEBuscarEssasVitorias(t *testing.T) {
 	bancoDeDados, limpaBancoDeDados := criaArquivoTemporario(t, "")
 	defer limpaBancoDeDados()
-	armazenamento := &SistemaDeArquivoArmazenamentoJogador{bancoDeDados}
+	armazenamento, err := NovoSistemaArquivoArmazenamentoJogador(bancoDeDados)
+
+	defineSemErro(t, err)
+
 	servidor := NovoServidorJogador(armazenamento)
 	jogador := "Maria"
 

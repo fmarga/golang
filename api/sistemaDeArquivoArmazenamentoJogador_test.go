@@ -26,26 +26,26 @@ func criaArquivoTemporario(t *testing.T, dadoInicial string) (*os.File, func()) 
 }
 
 func TestSistemaDeArquivoArmazenamentoJogador(t *testing.T) {
-	t.Run("/liga de um leitor", func(t *testing.T) {
-		bancoDeDados, limpaBancoDeDados := criaArquivoTemporario(t, `[
-			{"Nome": "Cleo", "Vitorias": 10},
-			{"Nome": "Chris", "Vitorias": 33}
-		]`)
-		defer limpaBancoDeDados()
-		armazenamento := SistemaDeArquivoArmazenamentoJogador{bancoDeDados}
+	// t.Run("/liga de um leitor", func(t *testing.T) {
+	// 	bancoDeDados, limpaBancoDeDados := criaArquivoTemporario(t, `[
+	// 		{"Nome": "Cleo", "Vitorias": 10},
+	// 		{"Nome": "Chris", "Vitorias": 33}
+	// 	]`)
+	// 	defer limpaBancoDeDados()
+	// 	armazenamento := SistemaDeArquivoArmazenamentoJogador{bancoDeDados}
 
-		recebido := armazenamento.ObterLiga()
+	// 	recebido := armazenamento.ObterLiga()
 
-		esperado := []Jogador{
-			{"Cleo", 10},
-			{"Chris", 33},
-		}
+	// 	esperado := []Jogador{
+	// 		{"Cleo", 10},
+	// 		{"Chris", 33},
+	// 	}
 
-		verificaLiga(t, recebido, esperado)
+	// 	verificaLiga(t, recebido, esperado)
 
-		recebido = armazenamento.ObterLiga()
-		verificaLiga(t, recebido, esperado)
-	})
+	// 	recebido = armazenamento.ObterLiga()
+	// 	verificaLiga(t, recebido, esperado)
+	// })
 
 	t.Run("retorna pontuação do jogador", func(t *testing.T) {
 		bancoDeDados, limpaBancoDeDados := criaArquivoTemporario(t, `[
@@ -54,7 +54,10 @@ func TestSistemaDeArquivoArmazenamentoJogador(t *testing.T) {
 		]`)
 		defer limpaBancoDeDados()
 
-		armazenamento := SistemaDeArquivoArmazenamentoJogador{bancoDeDados}
+		armazenamento, err := NovoSistemaArquivoArmazenamentoJogador(bancoDeDados)
+
+		defineSemErro(t, err)
+
 		recebido := armazenamento.PegarPontuacaoJogador("Chris")
 		esperado := 33
 
@@ -68,7 +71,10 @@ func TestSistemaDeArquivoArmazenamentoJogador(t *testing.T) {
 		]`)
 		defer limpaBancoDeDados()
 
-		armazenamento := SistemaDeArquivoArmazenamentoJogador{bancoDeDados}
+		armazenamento, err := NovoSistemaArquivoArmazenamentoJogador(bancoDeDados)
+
+		defineSemErro(t, err)
+
 		armazenamento.SalvaVitoria("Chris")
 
 		recebido := armazenamento.PegarPontuacaoJogador("Chris")
@@ -83,12 +89,46 @@ func TestSistemaDeArquivoArmazenamentoJogador(t *testing.T) {
 		]`)
 		defer limpaBancoDeDados()
 
-		armazenamento := SistemaDeArquivoArmazenamentoJogador{bancoDeDados}
+		armazenamento, err := NovoSistemaArquivoArmazenamentoJogador(bancoDeDados)
+		defineSemErro(t, err)
+
 		armazenamento.SalvaVitoria("Pepper")
 
 		recebido := armazenamento.PegarPontuacaoJogador("Pepper")
 		esperado := 1
 		definePontuacaoIgual(t, recebido, esperado)
+	})
+
+	t.Run("liga ordenada", func(t *testing.T) {
+		bancoDeDados, limpaBancoDeDados := criaArquivoTemporario(t, `[
+			{"Nome": "Cleo", "Vitorias": 10},
+			{"Nome": "Chris", "Vitorias": 33}
+		]`)
+		defer limpaBancoDeDados()
+
+		armazenamento, err := NovoSistemaArquivoArmazenamentoJogador(bancoDeDados)
+
+		defineSemErro(t, err)
+
+		recebido := armazenamento.ObterLiga()
+		esperado := []Jogador{
+			{"Chris", 33},
+			{"Cleo", 10},
+		}
+
+		verificaLiga(t, recebido, esperado)
+
+		recebido = armazenamento.ObterLiga()
+		verificaLiga(t, recebido, esperado)
+	})
+
+	t.Run("trabalha com um arquivo vazio", func(t *testing.T) {
+		bancoDeDados, limpaBancoDeDados := criaArquivoTemporario(t, "")
+		defer limpaBancoDeDados()
+
+		_, err := NovoSistemaArquivoArmazenamentoJogador(bancoDeDados)
+
+		defineSemErro(t, err)
 	})
 }
 
@@ -96,5 +136,12 @@ func definePontuacaoIgual(t *testing.T, recebido, esperado int) {
 	t.Helper()
 	if recebido != esperado {
 		t.Errorf("recebido %d, esperado %d", recebido, esperado)
+	}
+}
+
+func defineSemErro(t *testing.T, err error) {
+	t.Helper()
+	if err != nil {
+		t.Fatalf("não esperava erro mas recebeu um, %v", err)
 	}
 }

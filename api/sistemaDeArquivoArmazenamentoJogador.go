@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 )
 
 type SistemaDeArquivoArmazenamentoJogador struct {
@@ -50,16 +51,16 @@ func NovoSistemaArquivoArmazenamentoJogador(arquivo *os.File) (*SistemaDeArquivo
 	return &SistemaDeArquivoArmazenamentoJogador{
 		bancoDeDados: json.NewEncoder(&fita{arquivo}),
 		liga:         liga,
-	}, nil,
+	}, nil
 }
 
-func iniciaArquivoBDDoJogador(arquivo &os.File) error {
+func iniciaArquivoBDDoJogador(arquivo *os.File) error {
 	arquivo.Seek(0, 0)
 
 	info, err := arquivo.Stat()
 
 	if err != nil {
-		return nil, fmt.Errorf("problema carregando armazenamento de jogador do arquivo %s, %v", arquivo.Name(), err)
+		return fmt.Errorf("problema carregando armazenamento de jogador do arquivo %s, %v", arquivo.Name(), err)
 	}
 
 	if info.Size() == 0 {
