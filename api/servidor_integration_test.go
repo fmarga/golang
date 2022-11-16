@@ -9,7 +9,9 @@ import (
 // ------ TESTE DE INTEGRAÇÃO
 
 func TestRegistrarVitoriasEBuscarEssasVitorias(t *testing.T) {
-	armazenamento := NovoArmazenamentoJogadorEmMemoria()
+	bancoDeDados, limpaBancoDeDados := criaArquivoTemporario(t, "")
+	defer limpaBancoDeDados()
+	armazenamento := &SistemaDeArquivoArmazenamentoJogador{bancoDeDados}
 	servidor := NovoServidorJogador(armazenamento)
 	jogador := "Maria"
 

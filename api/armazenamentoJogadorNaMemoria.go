@@ -16,7 +16,7 @@ func (a *ArmazenamentoJogadorEmMemoria) ObterPontuacaoJogador(nome string) int {
 	return a.armazenamento[nome]
 }
 
-func (a *ArmazenamentoJogadorEmMemoria) ObterLiga() []Jogador {
+func (a *ArmazenamentoJogadorEmMemoria) ObterLiga() Liga {
 	var liga []Jogador
 	for nome, vitorias := range a.armazenamento {
 		liga = append(liga, Jogador{nome, vitorias})

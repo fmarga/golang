@@ -25,7 +25,7 @@ func (e *EsbocoArmazenamentoJogador) RegistrarVitoria(nome string) {
 	e.registroVitorias = append(e.registroVitorias, nome)
 }
 
-func (e *EsbocoArmazenamentoJogador) ObterLiga() []Jogador {
+func (e *EsbocoArmazenamentoJogador) ObterLiga() Liga {
 	return e.liga
 }
 
