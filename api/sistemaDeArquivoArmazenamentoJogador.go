@@ -19,7 +19,7 @@ func (s *SistemaDeArquivoArmazenamentoJogador) ObterLiga() Liga {
 	return s.liga
 }
 
-func (s *SistemaDeArquivoArmazenamentoJogador) PegarPontuacaoJogador(nome string) int {
+func (s *SistemaDeArquivoArmazenamentoJogador) ObterPontuacaoJogador(nome string) int {
 
 	jogador := s.liga.Find(nome)
 	if jogador != nil {
@@ -29,7 +29,7 @@ func (s *SistemaDeArquivoArmazenamentoJogador) PegarPontuacaoJogador(nome string
 	return 0
 }
 
-func (s *SistemaDeArquivoArmazenamentoJogador) SalvaVitoria(nome string) {
+func (s *SistemaDeArquivoArmazenamentoJogador) RegistrarVitoria(nome string) {
 	jogador := s.liga.Find(nome)
 
 	if jogador != nil {
@@ -41,8 +41,10 @@ func (s *SistemaDeArquivoArmazenamentoJogador) SalvaVitoria(nome string) {
 	s.bancoDeDados.Encode(s.liga)
 }
 
-func NovoSistemaArquivoArmazenamentoJogador(arquivo *os.File) (*SistemaDeArquivoArmazenamentoJogador, err) {
-	err := iniciaArquivoBDDojogador(arquivo)
+func NovoSistemaArquivoArmazenamentoJogador(arquivo *os.File) (*SistemaDeArquivoArmazenamentoJogador, error) {
+	err := iniciaArquivoBDDoJogador(arquivo)
+
+	liga, err := NovaLiga(arquivo)
 
 	if err != nil {
 		return nil, fmt.Errorf("problema carregando armazenamento de jogador do arquivo %s, %v", arquivo.Name(), err)

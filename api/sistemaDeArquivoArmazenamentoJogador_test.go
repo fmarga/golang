@@ -58,7 +58,7 @@ func TestSistemaDeArquivoArmazenamentoJogador(t *testing.T) {
 
 		defineSemErro(t, err)
 
-		recebido := armazenamento.PegarPontuacaoJogador("Chris")
+		recebido := armazenamento.ObterPontuacaoJogador("Chris")
 		esperado := 33
 
 		definePontuacaoIgual(t, recebido, esperado)
@@ -75,9 +75,9 @@ func TestSistemaDeArquivoArmazenamentoJogador(t *testing.T) {
 
 		defineSemErro(t, err)
 
-		armazenamento.SalvaVitoria("Chris")
+		armazenamento.RegistrarVitoria("Chris")
 
-		recebido := armazenamento.PegarPontuacaoJogador("Chris")
+		recebido := armazenamento.ObterPontuacaoJogador("Chris")
 		esperado := 34
 		definePontuacaoIgual(t, recebido, esperado)
 	})
@@ -92,9 +92,9 @@ func TestSistemaDeArquivoArmazenamentoJogador(t *testing.T) {
 		armazenamento, err := NovoSistemaArquivoArmazenamentoJogador(bancoDeDados)
 		defineSemErro(t, err)
 
-		armazenamento.SalvaVitoria("Pepper")
+		armazenamento.RegistrarVitoria("Pepper")
 
-		recebido := armazenamento.PegarPontuacaoJogador("Pepper")
+		recebido := armazenamento.ObterPontuacaoJogador("Pepper")
 		esperado := 1
 		definePontuacaoIgual(t, recebido, esperado)
 	})
