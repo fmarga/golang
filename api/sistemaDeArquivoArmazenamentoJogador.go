@@ -14,7 +14,7 @@ type SistemaDeArquivoArmazenamentoJogador struct {
 
 func (s *SistemaDeArquivoArmazenamentoJogador) ObterLiga() Liga {
 	sort.Slice(s.liga, func(i, j int) bool {
-		return f.liga[i].Vitorias > f.liga[j].Vitorias
+		return s.liga[i].Vitorias > s.liga[j].Vitorias
 	})
 	return s.liga
 }
