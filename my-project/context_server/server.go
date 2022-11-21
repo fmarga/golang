@@ -1,8 +1,8 @@
 package context_server
 
-import (
-	"fmt"
+import(
 	"net/http"
+	"fmt"
 )
 
 type Store interface {
@@ -10,8 +10,21 @@ type Store interface {
 	Cancel()
 }
 
-func Server(store Store) http.HandleFunc {
+func Server(store Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, store.Fetch())
-	}
+		ctx := r.Context()
+
+		data := make(chan string, 1)
+
+		go func() {
+			data <- store.Fetch()
+		}()
+
+		select {
+		case d:= <-data:
+			fmt.Fprint(w, d)
+		case <-ctx.Done():
+			store.Cancel()
+		}
+	}	
 }
